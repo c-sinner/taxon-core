@@ -37,8 +37,15 @@ tests = [
 ]
 
 taxon_grammar = nltk.CFG.fromstring("""
-T -> N A | N | N PA
-N -> G | S | G S | G S SSP | S SSP
+S -> T | T WORDS | WORDS T
+WORDS -> WORD | WORDS | WORDS WORDS | QUINTWORD | QUADWORD | TRIPLEWORD
+QUINTWORD -> WORD WORD WORD WORD WORD
+QUADWORD -> WORD WORD WORD WORD
+TRIPLEWORD -> WORD WORD WORD
+WORD -> LOW | CAP | C
+LOW -> 'LOW'
+T -> N A | N PA
+N -> G S | G S SSP | S SSP
 G -> GG | GG PL GS PR
 GG -> 'CAP'
 GS -> 'CAP'
@@ -142,11 +149,14 @@ def replace_values(tree, new_values):
 
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
-tagged_text = regexp_tagger.tag(word_tokenize(ligate(TreebankWordDetokenizer().detokenize(sys.argv[1:]))))
+with open(sys.argv[1], "r") as infile:
+    input_text = infile.read()
+
+tagged_text = regexp_tagger.tag(word_tokenize(ligate(input_text)))
 only_tags = [tag for text, tag in tagged_text]
 only_text = [text for text, tag in tagged_text]
-print(f"SPECIES: {TreebankWordDetokenizer().detokenize(sys.argv[1:])}")
-# print(only_tags)
+print(f"SPECIES: {input_text}")
+print(only_tags)
 for tree in parser.parse(only_tags):
     tree = replace_values(tree, only_text)
     tree.pretty_print(highlight=[("GG", "red")])
